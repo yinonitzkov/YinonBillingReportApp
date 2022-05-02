@@ -1,3 +1,4 @@
+from sqlalchemy import create_engine
 import streamlit as st
 from operator import index
 from os import read
@@ -12,6 +13,18 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Font
 from streamlit_option_menu import option_menu
 
+
+SERVER = 'sql'
+DATABASE = 'SCEXPERT'
+DRIVER ='SQL Server'
+USERNAME = 'sa'
+PASSWORD = 'ga@123'
+DATEBASE_CONNECTION = f'mssql://{USERNAME}:{PASSWORD}@{SERVER}/{DATABASE}?driver={DRIVER}'
+
+
+engine = create_engine(f'mssql+pyodbc://{SERVER}/{DATABASE}?driver=SQL+Server+Native+Client+11.0')
+connection = engine.connect()
+#data = pd.read_sql_query("select top 1 * from sku", connection)
 
 st.set_page_config('YinonRepBillingApp')
 
@@ -86,8 +99,8 @@ if choose == "Excel Report":
 
 
 
-    connection = pyodbc.connect("Driver={SQL Server}; Server=sql; Database=SCEXPERT")
-    cursor = connection.cursor()
+    #connection = pyodbc.connect("Driver={SQL Server}; Server=sql; Database=SCEXPERT")
+    #cursor = connection.cursor()
     consignee = pd.read_sql_query("select consignee from consignee", connection)
     YearOptions = pd.read_sql_query("select distinct cast(year(BILLFROMDATE) as char) as BILLFROMDATE from BILLINGCHARGESDETAIL", connection)['BILLFROMDATE'].values.tolist()
     Password= '123456'
