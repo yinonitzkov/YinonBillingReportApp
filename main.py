@@ -852,7 +852,7 @@ if choose == "Excel Report":
                             HafatzaReport_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
                             MishtacheiEtzIn_Billing.to_excel(writer, 'משטחי עץ לחיוב', index=False, freeze_panes=[1,0],)
                             MishtacheiEtzOut_Billing.to_excel(writer, 'משטחי עץ לזיכוי', index=False, freeze_panes=[1,0],)                            
-                            ErechMusaf_Billing.to_excel(writer, 'ערך מוסף מיון ובניה', index=False, freeze_panes=[1,0],)
+          
                             
 
                         # הפעלת פונקציה לעיצוב האקסל
