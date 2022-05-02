@@ -4,7 +4,7 @@ from operator import index
 from os import read
 from sys import implementation
 from textwrap import wrap
-import pyodbc
+#import pyodbc
 import pandas as pd
 import os.path
 from os import path
