@@ -852,10 +852,14 @@ if choose == "Excel Report":
 <<<<<<< HEAD
                             MishtacheiEtzIn_Billing.to_excel(writer, 'משטחי עץ לחיוב', index=False, freeze_panes=[1,0],)
                             MishtacheiEtzOut_Billing.to_excel(writer, 'משטחי עץ לזיכוי', index=False, freeze_panes=[1,0],)                            
+<<<<<<< HEAD
           
 =======
                             ErechMusaf_Billing.to_excel(writer, 'ערך מוסף מיון ובניה', index=False, freeze_panes=[1,0],)
 >>>>>>> parent of b1be2df (Update main.py)
+=======
+                            ErechMusaf_Billing.to_excel(writer, 'ערך מוסף מיון ובניה', index=False, freeze_panes=[1,0],)
+>>>>>>> parent of 4bdb8ec (Revert "Update main.py")
                             
 
                         # הפעלת פונקציה לעיצוב האקסל
