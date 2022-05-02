@@ -15,10 +15,6 @@ from openpyxl.styles import PatternFill, Font
 from streamlit_option_menu import option_menu
 
 
-
-
-
-
 st.set_page_config('YinonRepBillingApp')
 
 def local_css(file_name):
@@ -142,7 +138,7 @@ if choose == "Excel Report":
                         #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
                         ExcelFile = load_workbook(Full_path)  
 
-                       #הערה לבדיקה
+                       
 
                     ## בניית תוכן של לשונית ריכוז 
                         ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
@@ -834,11 +830,12 @@ if choose == "Excel Report":
                         Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
                                                                         where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' ", connection)
-         
+                        MishtacheiEtzIn_Billing = pd.read_sql_query(f"select * from repProformaPalltes where year(DocDate)='{YEARSelected}' and month(DocDate)='{monthSelected}' and BillType='זיכוי' and CONSIGNEE='DELTA' ", connection)
+                        MishtacheiEtzOut_Billing = pd.read_sql_query(f"select * from repProformaPalltes where year(DocDate)='{YEARSelected}' and month(DocDate)='{monthSelected}' and BillType='חיוב' and CONSIGNEE='DELTA' ", connection)
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='88'  ", connection)          
                         ErechMusaf_Billing = pd.read_sql_query(f"select * from ProformaSpecialBilling where CHARGEID='{ChargeID}' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                       
+                        Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
                         
 
                         #יצירת קובץ האקסל
@@ -849,17 +846,9 @@ if choose == "Excel Report":
                             Likut_Billing.to_excel(writer, 'ליקוטים', index=False, freeze_panes=[1,0],)                           
                             Klita_Billing.to_excel(writer, 'קליטה', index=False, freeze_panes=[1,0],)
                             HafatzaReport_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
-<<<<<<< HEAD
                             MishtacheiEtzIn_Billing.to_excel(writer, 'משטחי עץ לחיוב', index=False, freeze_panes=[1,0],)
                             MishtacheiEtzOut_Billing.to_excel(writer, 'משטחי עץ לזיכוי', index=False, freeze_panes=[1,0],)                            
-<<<<<<< HEAD
-          
-=======
                             ErechMusaf_Billing.to_excel(writer, 'ערך מוסף מיון ובניה', index=False, freeze_panes=[1,0],)
->>>>>>> parent of b1be2df (Update main.py)
-=======
-                            ErechMusaf_Billing.to_excel(writer, 'ערך מוסף מיון ובניה', index=False, freeze_panes=[1,0],)
->>>>>>> parent of 4bdb8ec (Revert "Update main.py")
                             
 
                         # הפעלת פונקציה לעיצוב האקסל
