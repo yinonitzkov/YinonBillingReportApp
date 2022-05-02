@@ -1,5 +1,4 @@
 import streamlit as st
-from ctypes.wintypes import SIZE
 from operator import index
 from os import read
 from sys import implementation
