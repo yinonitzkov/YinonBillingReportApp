@@ -3,7 +3,6 @@ from operator import index
 from os import read
 from sys import implementation
 from textwrap import wrap
-from tkinter import HIDDEN, N
 import pyodbc
 import pandas as pd
 import os.path
