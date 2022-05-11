@@ -413,7 +413,7 @@ if choose == "Excel Report":
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
                         loads_billing.drop(['SKUDESC','SKUGROUP'], axis=1, inplace=True)
                         Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='BUR'", connection)              
-                        KlitatMasait_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
+                        KlitatMasait_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' ", connection)
                         Likutim_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
@@ -469,9 +469,9 @@ if choose == "Excel Report":
                         ExcelFile['ריכוז'] ['A10'] = 'ערך מוסף'
                         ExcelFile['ריכוז'] ['B10'] = '=0'
                         ExcelFile['ריכוז'] ['A11'] = 'משטחי עץ-כניסה'
-                        ExcelFile['ריכוז'] ['B11'] = '=SUM(\'משטחי עץ-כניסה\'!J:J)*-16'
+                        ExcelFile['ריכוז'] ['B11'] = '=SUM(\'משטחי עץ-כניסה\'!L:L)*-16'
                         ExcelFile['ריכוז'] ['A12'] = 'משטחי עץ-יציאה'
-                        ExcelFile['ריכוז'] ['B12'] = '=SUM(\'משטחי עץ-יציאה\'!J:J)*16'
+                        ExcelFile['ריכוז'] ['B12'] = '=SUM(\'משטחי עץ-יציאה\'!L:L)*16'
                         ExcelFile['ריכוז'] ['A13'] = 'הפרשי קיזוז'
                         ExcelFile['ריכוז'] ['B13'] = '=5000*1'
                         ExcelFile['ריכוז'] ['D13'] = 'מתוך'
@@ -496,15 +496,15 @@ if choose == "Excel Report":
     ################(BFL) פודאפיל ################################## 
     def BFL_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
-                        loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
-                        Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='BIAPAL'", connection)              
-                        SapakimMekomieim_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
+                        loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('3','12')", connection)
+                        Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='BIAPAL' AND AGREEMENTLINE IN ('203','204','205','206','207','217') ", connection)              
+                        SapakimMekomieim_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
                                                                         where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and ISNULL(TRANSPORTTYPE,'')='WTW' ", connection)
-                        MishtacheiYevu_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
+                        MishtacheiYevu_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
                                                                     where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and ISNULL(TRANSPORTTYPE,'')='PurchOrder' ", connection)
-                        Hachzarot_Billing = pd.read_sql_query(f"select select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
+                        Hachzarot_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
                                                                     where 1=2 ", connection)
                         LikutB2B_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
@@ -514,12 +514,13 @@ if choose == "Excel Report":
                         LikutB2C_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
-                                    , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and ORDERTYPE='ליקוט' and CHARGEDESCRIPTION like '%ליקוט%' ", connection)
+                                    , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and ORDERTYPE='ליקוט' and CHARGEDESCRIPTION like '%ליקוט%' and AGREEMENTLINE='6' ", connection)
                         ArizatOnLine_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and ORDERTYPE='ליקוט' and CHARGEDESCRIPTION like '%אריז%' ", connection)
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='89'  ", connection)          
+                    #    HafatzaReport_Billing["Qty"] = pd.to_numeric(HafatzaReport_Billing["Qty"])
                         TeumeiAspakaB2B_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
@@ -527,7 +528,7 @@ if choose == "Excel Report":
                         HafatzaBulimB2B_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
-                                    , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and ORDERTYPE='ליקוט' and CHARGEDESCRIPTION like '%בול%' ", connection)
+                                    , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and AGREEMENTLINE='9' ", connection)
                         Govaina_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
@@ -541,6 +542,7 @@ if choose == "Excel Report":
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where 1=2 ", connection)                  
                         MishtacheiEtz_Billing = pd.read_sql_query(f"select * from ProformaBaldarutPallets where CHARGEID='{ChargeID}' ", connection)
+                        ZikuyMishtachim_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='BIAPAL' AND AGREEMENTLINE IN ('218') ", connection)              
                         ErechMusaf_Billing = pd.read_sql_query(f"select * from ProformaSpecialBilling where CHARGEID='{ChargeID}' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
                         
@@ -562,6 +564,7 @@ if choose == "Excel Report":
                             HaamasaAtzmit_Billing.to_excel(writer, 'העמסה עצמית', index=False, freeze_panes=[1,0],)
                             HaavaraBeinChanuiot_Billing.to_excel(writer, 'העברות בין חנויות והחזרות', index=False, freeze_panes=[1,0],)                       
                             MishtacheiEtz_Billing.to_excel(writer, 'משטחי עץ און ליין', index=False, freeze_panes=[1,0],)
+                            ZikuyMishtachim_Billing.to_excel(writer, 'זיכוי משטחים', index=False, freeze_panes=[1,0],)
                             ErechMusaf_Billing.to_excel(writer, 'עבודות ערך מוסף', index=False, freeze_panes=[1,0],)
 
                         # הפעלת פונקציה לעיצוב האקסל
@@ -597,6 +600,7 @@ if choose == "Excel Report":
                         ExcelFile['ריכוז'] .merge_cells('A1:B1')
                         ExcelFile['ריכוז'] .column_dimensions['A'].width = 22
                         ExcelFile['ריכוז'] .column_dimensions['B'].width = 14
+                        
 
                         # להפוך את כל התאים של מחיר לפורמט שקל
                         Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='B'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי
@@ -904,10 +908,10 @@ if choose == "Excel Report":
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and CHARGEDESCRIPTION like '%ליקוט%' ", connection)                        
-                        Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
+                        Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT  \
                                                                     , CASE WHEN TRANSPORTTYPE='PurchaseOrder' THEN OBJECTUNITS ELSE 0 END AS PalltesToBill from repProformaInDetailed \
-                                                                        where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' ", connection)
+                                                                        where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and AGREEMENTLINE=4 ", connection)
                         HovalaFromGolf = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
                                                                         where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and AGREEMENTLINE in ('5','6') ", connection)
