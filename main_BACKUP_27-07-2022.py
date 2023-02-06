@@ -103,7 +103,6 @@ if choose == "Excel Report":
     #cursor = connection.cursor()
     consignee = pd.read_sql_query("select consignee from consignee UNION select 'KRAVITZ' as consignee UNION select 'ORSHAR' as consignee UNION select 'GOLF_CD' as consignee \
                                     UNION select 'ESHED' as consignee UNION select 'KNS' as consignee UNION select 'LOGISTEAM' as consignee ", connection)
-    
     YearOptions = pd.read_sql_query("select distinct cast(year(BILLFROMDATE) as char) as BILLFROMDATE from BILLINGCHARGESDETAIL", connection)['BILLFROMDATE'].values.tolist()
     Password= '123456'
     Error_path = ''
@@ -117,7 +116,7 @@ if choose == "Excel Report":
     TotalCharge_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
 
    ################אלקטרה################################## 
-    def ELECTRA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
+    def ELECTRA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):   
         
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
@@ -127,13 +126,12 @@ if choose == "Excel Report":
                         HafatzaKod11_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen='11' and Mispar_Sapak='300' and Teur_Murzar<>'הובלה מיוחדת' ", connection)
                         HafatzaMishtachim_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Teur_Murzar='משטח' and Mispar_Sapak='300' ", connection)
                         HafatzaHovalaMeyuchedet_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Teur_Murzar='הובלה מיוחדת' and Mispar_Sapak='300' ", connection)
-                        HafatzaBeitLakoach_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen IN ('6') and Mispar_Sapak='300' ", connection)
+                        HafatzaBeitLakoach_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen='11' and Sochen='6' ", connection)
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen<>'6' and Mispar_Sapak='300' and Sochen<>'11' and Teur_Murzar not in ('הובלה מיוחדת','משטח') ", connection)
                         HafatzaChiuvimMeyuchadim_Billing = pd.read_sql_query(f"select N'' as [תאריך] , N'' AS [תיאור החיוב                         .] , N'' AS [סכום לחיוב] , N'' AS [שם המאשר] , N'' AS [הערות                                                                                       .]", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
                         Hafatza_Billing = pd.read_sql_query(f"select * from vPivotCheshbonSapakimMegicBill where  year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and CONSIGNEE='ELECTRA' ", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
+                                            
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -146,8 +144,7 @@ if choose == "Excel Report":
                             HafatzaReport_Billing.to_excel(writer, 'דוח הפצה', index=False, freeze_panes=[1,0],)
                             HafatzaChiuvimMeyuchadim_Billing.to_excel(writer, 'חיובים מיוחדים', index=False, freeze_panes=[1,0],)
                             Hafatza_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-
+                 
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)   
                         #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
@@ -156,7 +153,7 @@ if choose == "Excel Report":
                        
 
                     ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -192,81 +189,10 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path) 
 
-################מחסני חשמל################################## 
-    def MCHASHMAL_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
-        
-                        #שליפת הנתונים ללשוניות הרלוונטיות
-                        loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
-                        loads_billing.drop(['SKUDESC','SKUGROUP'], axis=1, inplace=True)
-                        Receipt_Billing = pd.read_sql_query(f"select * from repProformaInPerUnits where CHARGEID='{ChargeID}'", connection)
-                        Receipt_Billing.drop(['skudesc','SKUGROUP','BILLTOTALCHARGE','BILLBASIS','UNITS','BILLTOTALCHARGELINE','TRANSACTIONTYPE'], axis=1, inplace=True)
-                        HafatzaMishtachim_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Teur_Murzar='משטח' and Mispar_Sapak='301' ", connection)
-                        HafatzaHovalaMeyuchedet_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Teur_Murzar='הובלה מיוחדת' and Mispar_Sapak='301' ", connection)
-                        HafatzaBeitLakoach_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen='2' and Mispar_Sapak='301' ", connection)
-                        HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen<>'6' and Mispar_Sapak='301' and Sochen<>'2' and Teur_Murzar not in ('הובלה מיוחדת','משטח') ", connection)
-                        HafatzaChiuvimMeyuchadim_Billing = pd.read_sql_query(f"select N'' as [תאריך] , N'' AS [תיאור החיוב                         .] , N'' AS [סכום לחיוב] , N'' AS [שם המאשר] , N'' AS [הערות                                                                                       .]", connection)
-                        Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        Hafatza_Billing = pd.read_sql_query(f"select * from vPivotCheshbonSapakimMegicBill where  year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and CONSIGNEE='MCHASHMAL' ", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
 
-                        #יצירת קובץ האקסל
-                        with pd.ExcelWriter(Full_path) as writer:          
-                            Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
-                            loads_billing.to_excel(writer,'אחסנה',index=False, freeze_panes=[1,0],)
-                            Receipt_Billing.to_excel(writer, 'כניסה', index=False, freeze_panes=[1,0],)
-                            HafatzaMishtachim_Billing.to_excel(writer, 'משטחים', index=False, freeze_panes=[1,0],)
-                            HafatzaHovalaMeyuchedet_Billing.to_excel(writer, 'הובלות מיוחדות', index=False, freeze_panes=[1,0],)
-                            HafatzaBeitLakoach_Billing.to_excel(writer, 'הפצה לבית לקוח' , index=False, freeze_panes=[1,0],)
-                            HafatzaReport_Billing.to_excel(writer, 'דוח הפצה', index=False, freeze_panes=[1,0],)
-                            HafatzaChiuvimMeyuchadim_Billing.to_excel(writer, 'חיובים מיוחדים', index=False, freeze_panes=[1,0],)
-                            Hafatza_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-                        # הפעלת פונקציה לעיצוב האקסל
-                        ExcelDesign(Full_path)   
-                        #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
-                        ExcelFile = load_workbook(Full_path)  
-
-                       
-
-                    ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
-
-                        #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
-                        for row in Excel_Value_Update.index:
-                            ExcelFile[ExcelBillAppCellValue['TAB'][row]] [ExcelBillAppCellValue['CELL'][row]] = ExcelBillAppCellValue['Cell_Value'][row]
-                       
-                        #עדכון מילוי בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Fill = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Fill']                       
-                        for row in Excel_Value_Fill.index:
-                            ExcelFile[Excel_Value_Fill['TAB'][row]][Excel_Value_Fill['CELL'][row]].fill = Choose_Fill(Excel_Value_Fill['Cell_Value'][row])
-                       
-                        #עדכון פונט בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Font = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Font']                       
-                        for row in Excel_Value_Font.index:
-                            ExcelFile[Excel_Value_Font['TAB'][row]][Excel_Value_Font['CELL'][row]].font = Choose_Font(Excel_Value_Font['Cell_Value'][row])                              
-
-                        # ExcelFile['ריכוז'] ['B3'].fill = Header_fill
-                        # ExcelFile['ריכוז'] ['A1'].font = Header_font
-                        # ExcelFile['ריכוז'] ['A4'] = 'אחסנה'
-                        # ExcelFile['ריכוז'] ['B4'] = '=SUM(אחסנה!V:V)'
-                        
-                        #עדכון מיזוג וגודל עמודות קבוע ללשונית ריכוז 
-                        ExcelFile['ריכוז'] .merge_cells('A1:B1')
-                        ExcelFile['ריכוז'] .column_dimensions['A'].width = 22
-                        ExcelFile['ריכוז'] .column_dimensions['B'].width = 14
-
-                        # להפוך את כל התאים של מחיר לפורמט שקל
-                        Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='B'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי
-
-                        #Charge_cell = ['B4','B5','B6','B7','B8','B9','B10','B11','B12','B13','B14','B15','B17']
-                        for row in Charge_cell.index:                           
-                            ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'                     
-
-                        ExcelFile.save(Full_path) 
 
 ################תן אלקטריק################################## 
-    def TENELECTRIK_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
+    def TENELECTRIK_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):   
         
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         Receipt_Billing = pd.read_sql_query(f"select * from repProformaInPerUnits where CHARGEID='{ChargeID}'", connection)
@@ -277,8 +203,7 @@ if choose == "Excel Report":
                         HafatzaMischarit_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen='1' and Mispar_Sapak='310' ", connection)
                         HafatzaBeitLakoach_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen='2' and Mispar_Sapak='310' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
+                                            
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -287,8 +212,7 @@ if choose == "Excel Report":
                             HafatzaReport_Billing.to_excel(writer, 'דוח הפצה', index=False, freeze_panes=[1,0],)
                             HafatzaMischarit_Billing.to_excel(writer, 'הפצה מסחרית', index=False, freeze_panes=[1,0],)
                             HafatzaBeitLakoach_Billing.to_excel(writer, 'הפצה לבית לקוח' , index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-
+                            
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)   
                         #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
@@ -297,7 +221,7 @@ if choose == "Excel Report":
                        
 
                     ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -333,76 +257,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path) 
 
-################שרות הוגן################################# 
-    def SHEROTHOGEN_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
-        
-                        #שליפת הנתונים ללשוניות הרלוונטיות
-                        Receipt_Billing = pd.read_sql_query(f"select * from repProformaInPerUnits where CHARGEID='{ChargeID}'", connection)
-                        Receipt_Billing.drop(['skudesc','SKUGROUP','BILLTOTALCHARGE','BILLBASIS','UNITS','BILLTOTALCHARGELINE','TRANSACTIONTYPE'], axis=1, inplace=True)                        
-                        loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
-                        loads_billing.drop(['SKUDESC','SKUGROUP'], axis=1, inplace=True)
-                        HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='320' ", connection)
-                        HafatzaMischarit_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen='1' and Mispar_Sapak='320' ", connection)
-                        HafatzaBeitLakoach_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Sochen='2' and Mispar_Sapak='320' ", connection)
-                        Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
-                        #יצירת קובץ האקסל
-                        with pd.ExcelWriter(Full_path) as writer:          
-                            Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
-                            loads_billing.to_excel(writer,'אחסנה',index=False, freeze_panes=[1,0],)
-                            Receipt_Billing.to_excel(writer, 'כניסה', index=False, freeze_panes=[1,0],)
-                            HafatzaReport_Billing.to_excel(writer, 'דוח הפצה', index=False, freeze_panes=[1,0],)
-                            HafatzaMischarit_Billing.to_excel(writer, 'הפצה מסחרית', index=False, freeze_panes=[1,0],)
-                            HafatzaBeitLakoach_Billing.to_excel(writer, 'הפצה לבית לקוח' , index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-
-                        # הפעלת פונקציה לעיצוב האקסל
-                        ExcelDesign(Full_path)   
-                        #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
-                        ExcelFile = load_workbook(Full_path)  
-
-                       
-
-                    ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
-
-                        #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
-                        for row in Excel_Value_Update.index:
-                            ExcelFile[ExcelBillAppCellValue['TAB'][row]] [ExcelBillAppCellValue['CELL'][row]] = ExcelBillAppCellValue['Cell_Value'][row]
-                       
-                        #עדכון מילוי בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Fill = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Fill']                       
-                        for row in Excel_Value_Fill.index:
-                            ExcelFile[Excel_Value_Fill['TAB'][row]][Excel_Value_Fill['CELL'][row]].fill = Choose_Fill(Excel_Value_Fill['Cell_Value'][row])
-                       
-                        #עדכון פונט בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Font = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Font']                       
-                        for row in Excel_Value_Font.index:
-                            ExcelFile[Excel_Value_Font['TAB'][row]][Excel_Value_Font['CELL'][row]].font = Choose_Font(Excel_Value_Font['Cell_Value'][row])                              
-
-                        # ExcelFile['ריכוז'] ['B3'].fill = Header_fill
-                        # ExcelFile['ריכוז'] ['A1'].font = Header_font
-                        # ExcelFile['ריכוז'] ['A4'] = 'אחסנה'
-                        # ExcelFile['ריכוז'] ['B4'] = '=SUM(אחסנה!V:V)'
-                        
-                        #עדכון מיזוג וגודל עמודות קבוע ללשונית ריכוז 
-                        ExcelFile['ריכוז'] .merge_cells('A1:B1')
-                        ExcelFile['ריכוז'] .column_dimensions['A'].width = 22
-                        ExcelFile['ריכוז'] .column_dimensions['B'].width = 14
-
-                        # להפוך את כל התאים של מחיר לפורמט שקל
-                        Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='B'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי
-
-                        #Charge_cell = ['B4','B5','B6','B7','B8','B9','B10','B11','B12','B13','B14','B15','B17']
-                        for row in Charge_cell.index:                           
-                            ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'                     
-
-                        ExcelFile.save(Full_path) 
 
     ################אפרודיטה################################## 
-    def AFRODITA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
+    def AFRODITA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):   
         
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
@@ -416,15 +273,10 @@ if choose == "Excel Report":
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and  CHARGEDESCRIPTION like '%ליקוט%' ", connection)
                         Hafatza_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='66' ", connection)
-                        Asortiment_Billing = pd.read_sql_query(f"select * from repProformaWcbOXESLTR where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('6','7','8','9','10','11','12','13','14')", connection)
+                        Asortiment_Billing = pd.read_sql_query(f"select '' as DATE_SRIKA, '' as Mispar_Mishtach, '' as Mispar_PL, '' as Sug_Mishtach, '' as Sug_Carton, '' as Sku, '' as Units, '' as Mechiron, '' as TotalPrice ", connection)
                         TeudotLMA_Billing = pd.read_sql_query(f"select '' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-                        MishtacheiEtzIn_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                         where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('4') ", connection)
-                        MishtacheiEtzOut_Billing = pd.read_sql_query(f"select * from repProformaPalltes where CHARGEID='{ChargeID}' ", connection)
-                        
+                                                                  
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -435,9 +287,6 @@ if choose == "Excel Report":
                             Hafatza_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
                             Asortiment_Billing.to_excel(writer, 'ערך מוסף אסורטימנטים LTR', index=False, freeze_panes=[1,0],)
                             TeudotLMA_Billing.to_excel(writer, 'LMAתעודות', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-                            MishtacheiEtzIn_Billing.to_excel(writer, 'משטחי עץ-זיכוי', index=False, freeze_panes=[1,0],)
-                            MishtacheiEtzOut_Billing.to_excel(writer, 'משטחי עץ-חיוב', index=False, freeze_panes=[1,0],)
                                                                   
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)   
@@ -445,7 +294,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)                         
 
                     ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -481,8 +330,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path) 
 
+
 ################בוניטה################################## 
-    def BONITA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
+    def BONITA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):   
         
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
@@ -496,15 +346,10 @@ if choose == "Excel Report":
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and  CHARGEDESCRIPTION like '%ליקוט%' ", connection)
                         Hafatza_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='92' ", connection)
-                        Asortiment_Billing = pd.read_sql_query(f"select * from repProformaWcbOXESLTR where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('6','7','8','9','10','11','12','13','14','15')", connection)
+                        Asortiment_Billing = pd.read_sql_query(f"select '' as DATE_SRIKA, '' as Mispar_Mishtach, '' as Mispar_PL, '' as Sug_Mishtach, '' as Sug_Carton, '' as Sku, '' as Units, '' as Mechiron, '' as TotalPrice ", connection)
                         TeudotLMA_Billing = pd.read_sql_query(f"select '' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-                        MishtacheiEtzIn_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                         where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('4') ", connection)
-                        MishtacheiEtzOut_Billing = pd.read_sql_query(f"select * from repProformaPalltes where CHARGEID='{ChargeID}' ", connection)
-
+                                                                  
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -515,17 +360,14 @@ if choose == "Excel Report":
                             Hafatza_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
                             Asortiment_Billing.to_excel(writer, 'ערך מוסף אסורטימנטים LTR', index=False, freeze_panes=[1,0],)
                             TeudotLMA_Billing.to_excel(writer, 'LMAתעודות', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)  
-                            MishtacheiEtzIn_Billing.to_excel(writer, 'משטחי עץ-זיכוי', index=False, freeze_panes=[1,0],)
-                            MishtacheiEtzOut_Billing.to_excel(writer, 'משטחי עץ-חיוב', index=False, freeze_panes=[1,0],)
-
+                                                                  
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)   
                         #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
                         ExcelFile = load_workbook(Full_path)                         
 
                     ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -560,9 +402,10 @@ if choose == "Excel Report":
                             ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'                     
 
                         ExcelFile.save(Full_path) 
-  
+
+    
     ################תדיראן גרופ################################## 
-    def TADIRAN_GROUP_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
+    def TADIRAN_GROUP_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):   
         
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
@@ -577,8 +420,7 @@ if choose == "Excel Report":
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and  CHARGEDESCRIPTION like '%ליקוט%' ", connection)
                         Hafatza_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='35' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
+                                                                  
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -587,15 +429,14 @@ if choose == "Excel Report":
                             Receipt_Billing.to_excel(writer, 'קליטה', index=False, freeze_panes=[1,0],)
                             Likut_Billing.to_excel(writer, 'ליקוט', index=False, freeze_panes=[1,0],)
                             Hafatza_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-
+                                                                  
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)   
                         #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
                         ExcelFile = load_workbook(Full_path)                         
 
                     ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -632,8 +473,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path) 
 
+
     ################פלקסטרוניקס################################## 
-    def FLEX_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
+    def FLEX_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):   
         
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
@@ -650,8 +492,7 @@ if choose == "Excel Report":
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and  CHARGEDESCRIPTION like '%ליקוט%' ", connection)
                         Hafatza_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='84' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
+                                                                  
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -660,14 +501,14 @@ if choose == "Excel Report":
                             Receipt_HovalaAtzmit_Billing.to_excel(writer, 'כניסות - הובלה עצמית חיצוני', index=False, freeze_panes=[1,0],)
                             Likut_Billing.to_excel(writer, 'ליקוט', index=False, freeze_panes=[1,0],)
                             Hafatza_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)                                      
+                                                                  
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)   
                         #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
                         ExcelFile = load_workbook(Full_path)                         
 
                     ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -703,81 +544,10 @@ if choose == "Excel Report":
                             ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'                     
 
                         ExcelFile.save(Full_path) 
-                        
-    ################פלקסטרוניקס################################## 
-    def SILKN_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
-        
-                        #שליפת הנתונים ללשוניות הרלוונטיות
-                        loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
-                        loads_billing.drop(['SKUDESC','SKUGROUP'], axis=1, inplace=True)
-                        Receipt_HovalaAtzmit_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                    where CHARGEID='{ChargeID}' and CHARGELINE='1'  ", connection)
-                        Receipt_Yevu_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                    where CHARGEID='{ChargeID}' and CHARGELINE='2'   ", connection)
-                        Likut_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
-                                    , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
-                                    , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
-                                    , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and  CHARGEDESCRIPTION like '%ליקוט%' ", connection)
-                        Hafatza_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='96' ", connection)
-                        Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
 
-                        #יצירת קובץ האקסל
-                        with pd.ExcelWriter(Full_path) as writer:          
-                            Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
-                            loads_billing.to_excel(writer,'אחסנה',index=False, freeze_panes=[1,0],)
-                            Receipt_Yevu_Billing.to_excel(writer, 'כניסות - יבוא', index=False, freeze_panes=[1,0],)
-                            Receipt_HovalaAtzmit_Billing.to_excel(writer, 'כניסות - הובלה עצמית חיצוני', index=False, freeze_panes=[1,0],)
-                            Likut_Billing.to_excel(writer, 'ליקוט', index=False, freeze_panes=[1,0],)
-                            Hafatza_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)                                      
-                        # הפעלת פונקציה לעיצוב האקסל
-                        ExcelDesign(Full_path)   
-                        #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
-                        ExcelFile = load_workbook(Full_path)                         
-
-                    ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
-
-                        #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
-                        for row in Excel_Value_Update.index:
-                            ExcelFile[ExcelBillAppCellValue['TAB'][row]] [ExcelBillAppCellValue['CELL'][row]] = ExcelBillAppCellValue['Cell_Value'][row]
-                       
-                        #עדכון מילוי בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Fill = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Fill']                       
-                        for row in Excel_Value_Fill.index:
-                            ExcelFile[Excel_Value_Fill['TAB'][row]][Excel_Value_Fill['CELL'][row]].fill = Choose_Fill(Excel_Value_Fill['Cell_Value'][row])
-                       
-                        #עדכון פונט בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Font = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Font']                       
-                        for row in Excel_Value_Font.index:
-                            ExcelFile[Excel_Value_Font['TAB'][row]][Excel_Value_Font['CELL'][row]].font = Choose_Font(Excel_Value_Font['Cell_Value'][row])                              
-
-                        # ExcelFile['ריכוז'] ['B3'].fill = Header_fill
-                        # ExcelFile['ריכוז'] ['A1'].font = Header_font
-                        # ExcelFile['ריכוז'] ['A4'] = 'אחסנה'
-                        # ExcelFile['ריכוז'] ['B4'] = '=SUM(אחסנה!V:V)'
-                        
-                        #עדכון מיזוג וגודל עמודות קבוע ללשונית ריכוז 
-                        ExcelFile['ריכוז'] .merge_cells('A1:B1')
-                        ExcelFile['ריכוז'] .column_dimensions['A'].width = 22
-                        ExcelFile['ריכוז'] .column_dimensions['B'].width = 14
-                        ExcelFile['ריכוז'] .column_dimensions['B'].width = 20
-
-                        # להפוך את כל התאים של מחיר לפורמט שקל
-                        Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='B'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי
-
-                        #Charge_cell = ['B4','B5','B6','B7','B8','B9','B10','B11','B12','B13','B14','B15','B17']
-                        for row in Charge_cell.index:                           
-                            ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'                     
-
-                        ExcelFile.save(Full_path) 
 
     ################מאניה גינס################################## 
-    def MANIA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):   
+    def MANIA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):   
         
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
@@ -790,7 +560,7 @@ if choose == "Excel Report":
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and  AGREEMENTLINE='2' ", connection)
-                        Hafatza_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='93' ", connection)
+                        Hafatza_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='92' ", connection)
                         
                         TeudotLMA_Billing = pd.read_sql_query(f"select '' ", connection)
                         Asortiment_Kvutza_Mida_Billing = pd.read_sql_query(f"select '' as DATE_SRIKA, '' as Mispar_Mishtach, '' as Mispar_PL, '' as Sug_Mishtach, '' as Sug_Carton, '' as Sku, '' as Units, '' as Mechiron, '' as TotalPrice ", connection)
@@ -802,8 +572,7 @@ if choose == "Excel Report":
                         Mishtach_Etz = pd.read_sql_query(f"select '' as DATE_SRIKA, '' as Mispar_Mishtach, '' as Mispar_PL, '' as Sug_Mishtach, '' as Sug_Carton, '' as Sku, '' as Units, '' as Mechiron, '' as TotalPrice ", connection)
                         PeulotMeyuchadot= pd.read_sql_query(f"select '' as DATE_SRIKA, '' as Mispar_Mishtach, '' as Mispar_PL, '' as Sug_Mishtach, '' as Sug_Carton, '' as Sku, '' as Units, '' as Mechiron, '' as TotalPrice ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
+                                                                  
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -821,15 +590,14 @@ if choose == "Excel Report":
                             Asortiment_Hadbakat_Barkod.to_excel(writer, 'הדבקת ברקוד', index=False, freeze_panes=[1,0],)
                             Mishtach_Etz.to_excel(writer, 'משטחי עץ', index=False, freeze_panes=[1,0],)
                             PeulotMeyuchadot.to_excel(writer, 'פעולות מיוחדות', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-
+                                                                  
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)   
                         #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
                         ExcelFile = load_workbook(Full_path)                         
 
                     ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -865,26 +633,27 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path) 
 
+
+
+
+
     ################בורגר ראנצ################################## 
-    def BUR_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def BUR_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
                         loads_billing.drop(['SKUDESC','SKUGROUP'], axis=1, inplace=True)
                         Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='BUR'", connection)              
                         KlitatMasait_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                         where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('1','10') ", connection)
+                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' ", connection)
                         Likutim_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' ", connection)
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='52'  ", connection)          
-                        MishtacheiEtzIn_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                         where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('12') ", connection)
-                        MishtacheiEtzOut_Billing = pd.read_sql_query(f"select * from repProformaPalltes where CHARGEID='{ChargeID}' ", connection)
+                        MishtacheiEtzIn_Billing = pd.read_sql_query(f"select * from repProformaPalltes where year(DocDate)='{YEARSelected}' and month(DocDate)='{monthSelected}' and BillType='זיכוי' and CONSIGNEE='BUR' ", connection)
+                        MishtacheiEtzOut_Billing = pd.read_sql_query(f"select * from repProformaPalltes where year(DocDate)='{YEARSelected}' and month(DocDate)='{monthSelected}' and BillType='חיוב' and CONSIGNEE='BUR' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
+                        
                         # #רשימת השליפות ללשוניות
                         # Excel_sheets_query_names = ['loads_billing','Mecholot_Billing','KlitatMasait_Billing','Likutim_Billing'
                         #                             ,'HafatzaReport_Billing','MishtacheiEtzIn_Billing','MishtacheiEtzOut_Billing','Rikuz_Billing']
@@ -899,7 +668,6 @@ if choose == "Excel Report":
                             HafatzaReport_Billing.to_excel(writer, 'דוח הפצה', index=False, freeze_panes=[1,0],)
                             MishtacheiEtzIn_Billing.to_excel(writer, 'משטחי עץ-כניסה', index=False, freeze_panes=[1,0],)
                             MishtacheiEtzOut_Billing.to_excel(writer, 'משטחי עץ-יציאה', index=False, freeze_panes=[1,0],)                       
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
 
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)
@@ -931,9 +699,9 @@ if choose == "Excel Report":
                         ExcelFile['ריכוז'] ['A10'] = 'ערך מוסף'
                         ExcelFile['ריכוז'] ['B10'] = '=0'
                         ExcelFile['ריכוז'] ['A11'] = 'משטחי עץ-כניסה'
-                        ExcelFile['ריכוז'] ['B11'] = '=SUM(\'משטחי עץ-כניסה\'!L:L)'
+                        ExcelFile['ריכוז'] ['B11'] = '=SUM(\'משטחי עץ-כניסה\'!L:L)*-16'
                         ExcelFile['ריכוז'] ['A12'] = 'משטחי עץ-יציאה'
-                        ExcelFile['ריכוז'] ['B12'] = '=SUM(\'משטחי עץ-יציאה\'!L:L)'
+                        ExcelFile['ריכוז'] ['B12'] = '=SUM(\'משטחי עץ-יציאה\'!L:L)*16'
                         ExcelFile['ריכוז'] ['A13'] = 'הפרשי קיזוז'
                         ExcelFile['ריכוז'] ['B13'] = '=5000*1'
                         ExcelFile['ריכוז'] ['D13'] = 'מתוך'
@@ -951,8 +719,12 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)  
 
-################(BFL) פודאפיל ################################## 
-    def BFL_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+
+
+
+
+    ################(BFL) פודאפיל ################################## 
+    def BFL_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('3')", connection)
                         Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='BIAPAL' AND AGREEMENTLINE IN ('203','204','205','206','207','217') ", connection)              
@@ -1007,8 +779,7 @@ if choose == "Excel Report":
                         ZikuyMishtachim_Billing = pd.read_sql_query(f"select * from ProformaBaldarutPallets where CHARGEID='{ChargeID}' and CONSIGNEE='BIAPAL' AND LINE IN ('216') ", connection)              
                         ErechMusaf_Billing = pd.read_sql_query(f"select * from ProformaSpecialBilling where CHARGEID='{ChargeID}' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
+                        
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -1030,7 +801,6 @@ if choose == "Excel Report":
                             ChiyuvMishtacheiEtzHafatza_Billing.to_excel(writer, 'חיוב משטחי עץ הפצה', index=False, freeze_panes=[1,0],)
                             ZikuyMishtachim_Billing.to_excel(writer, 'זיכוי משטחים', index=False, freeze_panes=[1,0],)
                             ErechMusaf_Billing.to_excel(writer, 'עבודות ערך מוסף', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
 
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)
@@ -1039,7 +809,7 @@ if choose == "Excel Report":
                     
 
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1120,15 +890,16 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
-################ כיתן  ################################## 
-    def KITAN_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+
+ ################ כיתן  ################################## 
+    def KITAN_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select CHARGEID, CHARGELINE, AGREEMENTLINE, CHARGETEXT, BILLFROMDATE, BILLTODATE, BILLTOTAL, UNITS from vBillingChargesByRunIDDetail where CHARGEID={ChargeID} and AGREEMENTLINE in ('6','14')", connection)
                         Likut_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and CHARGEDESCRIPTION like '%ליקוט%' ", connection)
-                        Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and AGREEMENTLINE='28'", connection)              
+                        Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='KITAN'", connection)              
                         Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
                                                                         where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and ISNULL(TRANSPORTTYPE,'')<>'RETURN' AND AGREEMENTLINE IN ('17','27')", connection)
@@ -1153,17 +924,13 @@ if choose == "Excel Report":
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaValueAdded where CHARGEID='{ChargeID}' and AGREEMENTLINE='38' ", connection)
-                        PickPivotReport_Billing = pd.read_sql_query(f"SELECT CHARGEDESCRIPTION, OBJECTUNITS AS Document_Units, PRICEPERUNIT, VALUE from repProformaDetailed where CHARGEID='{ChargeID}' and CHARGEDESCRIPTION like '%ליקוט%' ", connection)          
-                        PickPivotReport_Billing = PickPivotReport_Billing.pivot_table(index='CHARGEDESCRIPTION', values=['Document_Units','PRICEPERUNIT','VALUE'], aggfunc=[sum],margins=True, margins_name='סה"כ')
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
                         
 
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
                             loads_billing.to_excel(writer,'אחסנה',index=False, freeze_panes=[1,0],)
-                            Likut_Billing.to_excel(writer, 'ליקוטים', index=False, freeze_panes=[1,0],) 
-                            PickPivotReport_Billing.to_excel(writer, 'PIVOT ליקוטים', freeze_panes=[1,0],startrow=1)
+                            Likut_Billing.to_excel(writer, 'ליקוטים', index=False, freeze_panes=[1,0],)
                             Mecholot_Billing.to_excel(writer, 'מכולות', index=False, freeze_panes=[1,0],)
                             Klita_Billing.to_excel(writer, 'קליטה', index=False, freeze_panes=[1,0],)
                             KlitaChazarot_Billing.to_excel(writer, 'קליטת חזרות', index=False, freeze_panes=[1,0],)
@@ -1174,7 +941,7 @@ if choose == "Excel Report":
                             MishtacheiBaldar_Zikuy_Billing.to_excel(writer, 'זיכוי משטחי עץ בלדרות', index=False, freeze_panes=[1,0],)
                             HafatzaReport_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
                             ErechMusaf_Billing.to_excel(writer, 'ערך מוסף', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
+                           
                             
 
                         # הפעלת פונקציה לעיצוב האקסל
@@ -1184,7 +951,7 @@ if choose == "Excel Report":
                     
 
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1224,103 +991,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
-################ גולף סיטונאים  ################################## 
-    def GOLFSIT_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
-                        #שליפת הנתונים ללשוניות הרלוונטיות
-                        loads_billing = pd.read_sql_query(f"select CHARGEID, CHARGELINE, AGREEMENTLINE, CHARGETEXT, BILLFROMDATE, BILLTODATE, BILLTOTAL, UNITS from vBillingChargesByRunIDDetail where CHARGEID={ChargeID} and AGREEMENTLINE in ('30')", connection)
-                        Likut_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
-                                    , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
-                                    , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
-                                    , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and AGREEMENTLINE IN ('31','32','33','34') ", connection)
-                        Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' ", connection)              
-                        Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                        where CHARGEID='{ChargeID}' AND AGREEMENTLINE IN ('27')", connection)
-                        Klita_WTW_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                        where CHARGEID='{ChargeID}' and AGREEMENTLINE='29' ", connection)                        
-                        KlitaChazarot_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                        where CHARGEID='{ChargeID}' and AGREEMENTLINE IN ('8','9') ", connection)
-                        HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak in ('95')  ", connection)          
-                        ErechMusaf_Billing = pd.read_sql_query(f"select * from ProformaSpecialBilling where CHARGEID='{ChargeID}' ", connection)
-                        Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                       # PickPivotReport_Billing = pd.read_sql_query(f"SELECT CHARGEDESCRIPTION, OBJECTUNITS AS Document_Units, PRICEPERUNIT, VALUE from repProformaDetailed where CHARGEID='{ChargeID}' and CHARGEDESCRIPTION like '%ליקוט%' ", connection)          
-                       # PickPivotReport_Billing = PickPivotReport_Billing.pivot_table(index='CHARGEDESCRIPTION', values=['Document_Units','PRICEPERUNIT','VALUE'], aggfunc=[sum],margins=True, margins_name='סה"כ')
-                        MishtacheiEtzIn_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                         where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('6') ", connection)
-                        MishtacheiEtzOut_Billing = pd.read_sql_query(f"select * from repProformaPalltes where CHARGEID='{ChargeID}' ", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
-                        
-
-                        #יצירת קובץ האקסל
-                        with pd.ExcelWriter(Full_path) as writer:          
-                            Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
-                            loads_billing.to_excel(writer,'אחסנה',index=False, freeze_panes=[1,0],)
-                            Likut_Billing.to_excel(writer, 'ליקוטים', index=False, freeze_panes=[1,0],) 
-                         #   PickPivotReport_Billing.to_excel(writer, 'PIVOT ליקוטים', freeze_panes=[1,0],startrow=1)
-                            Mecholot_Billing.to_excel(writer, 'מכולות', index=False, freeze_panes=[1,0],)
-                            Klita_Billing.to_excel(writer, 'קליטה', index=False, freeze_panes=[1,0],)
-                            KlitaChazarot_Billing.to_excel(writer, 'קליטת חזרות', index=False, freeze_panes=[1,0],)
-                            MishtacheiEtzIn_Billing.to_excel(writer, 'משטחי עץ-כניסה', index=False, freeze_panes=[1,0],)
-                            MishtacheiEtzOut_Billing.to_excel(writer, 'משטחי עץ-יציאה', index=False, freeze_panes=[1,0],) 
-                            HafatzaReport_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)
-                            Klita_WTW_Billing.to_excel(writer, 'הובלה בהעברה בין מחסנים', index=False, freeze_panes=[1,0],)
-                            ErechMusaf_Billing.to_excel(writer, 'ערך מוסף', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-                            
-
-                        # הפעלת פונקציה לעיצוב האקסל
-                        ExcelDesign(Full_path)
-                        #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
-                        ExcelFile = load_workbook(Full_path)
-                    
-
-                          ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
-
-                        #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
-                        for row in Excel_Value_Update.index:
-                            ExcelFile[ExcelBillAppCellValue['TAB'][row]] [ExcelBillAppCellValue['CELL'][row]] = ExcelBillAppCellValue['Cell_Value'][row]
-                       
-                        #עדכון מילוי בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Fill = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Fill']                       
-                        for row in Excel_Value_Fill.index:
-                            ExcelFile[Excel_Value_Fill['TAB'][row]][Excel_Value_Fill['CELL'][row]].fill = Choose_Fill(Excel_Value_Fill['Cell_Value'][row])
-                       
-                        #עדכון פונט בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Font = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Font']                       
-                        for row in Excel_Value_Font.index:
-                            ExcelFile[Excel_Value_Font['TAB'][row]][Excel_Value_Font['CELL'][row]].font = Choose_Font(Excel_Value_Font['Cell_Value'][row])                              
-
-                        # ExcelFile['ריכוז'] ['B3'].fill = Header_fill
-                        # ExcelFile['ריכוז'] ['A1'].font = Header_font
-                        # ExcelFile['ריכוז'] ['A4'] = 'אחסנה'
-                        # ExcelFile['ריכוז'] ['B4'] = '=SUM(אחסנה!V:V)'
-                        
-                        #עדכון מיזוג וגודל עמודות קבוע ללשונית ריכוז 
-                        ExcelFile['ריכוז'] .merge_cells('A1:B1')
-                        ExcelFile['ריכוז'] .column_dimensions['A'].width = 22
-                        ExcelFile['ריכוז'] .column_dimensions['B'].width = 14
-                        ExcelFile['ריכוז'] .column_dimensions['D'].width = 16
-                        ExcelFile['ריכוז'] .column_dimensions['E'].width = 16
-                        ExcelFile['ריכוז'] .column_dimensions['F'].width = 16
-
-                        # להפוך את כל התאים של מחיר לפורמט שקל
-                        Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='B'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי
-
-                       
-                        for row in Charge_cell.index:                           
-                            ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'      
-
-
-                        ExcelFile.save(Full_path)
 
 ################ לבן  ################################## 
-    def LAVAN_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def LAVAN_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select CHARGEID, CHARGELINE, AGREEMENTLINE, CHARGETEXT, BILLFROMDATE, BILLTODATE, BILLTOTAL, UNITS from vBillingChargesByRunIDDetail where CHARGEID={ChargeID} and AGREEMENTLINE in ('6')", connection)
                         Likut_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
@@ -1355,7 +1028,7 @@ if choose == "Excel Report":
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='94'  ", connection)          
                         ErechMusaf_Billing = pd.read_sql_query(f"select * from ProformaSpecialBilling where CHARGEID='{ChargeID}' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
+                        
 
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:     
@@ -1374,7 +1047,6 @@ if choose == "Excel Report":
                             ErechMusaf_Billing.to_excel(writer, 'ערך מוסף', index=False, freeze_panes=[1,0],)
                             Klita_WTW_Billing.to_excel(writer, 'הובלה בהעברה בין מחסנים', index=False, freeze_panes=[1,0],)
                             ArizatOnLine_Billing.to_excel(writer, 'אריזת הזמנות אונליין', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
 
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)
@@ -1383,7 +1055,7 @@ if choose == "Excel Report":
                     
 
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1420,8 +1092,11 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
+
+
+
 ################ דלתא  ################################## 
-    def DELTA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def DELTA_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
                         Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='DELTA'", connection)              
@@ -1432,15 +1107,12 @@ if choose == "Excel Report":
                         Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTlINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
                                                                         where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' ", connection)
-                       # MishtacheiEtzIn_Billing = pd.read_sql_query(f"select * from repProformaPalltes where year(DocDate)='{YEARSelected}' and month(DocDate)='{monthSelected}' and BillType='זיכוי' and CONSIGNEE='DELTA' ", connection)
-                        MishtacheiEtzIn_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
-                                                                    , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                         where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('6') ", connection)
-                        MishtacheiEtzOut_Billing = pd.read_sql_query(f"select * from repProformaPalltes where CHARGEID='{ChargeID}' ", connection)
+                        MishtacheiEtzIn_Billing = pd.read_sql_query(f"select * from repProformaPalltes where year(DocDate)='{YEARSelected}' and month(DocDate)='{monthSelected}' and BillType='זיכוי' and CONSIGNEE='DELTA' ", connection)
+                        MishtacheiEtzOut_Billing = pd.read_sql_query(f"select * from repProformaPalltes where year(DocDate)='{YEARSelected}' and month(DocDate)='{monthSelected}' and BillType='חיוב' and CONSIGNEE='DELTA' ", connection)
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='88'  ", connection)          
                         ErechMusaf_Billing = pd.read_sql_query(f"select * from ProformaSpecialBilling where CHARGEID='{ChargeID}' ", connection)
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
+                        
 
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
@@ -1453,7 +1125,7 @@ if choose == "Excel Report":
                             MishtacheiEtzIn_Billing.to_excel(writer, 'משטחי עץ לחיוב', index=False, freeze_panes=[1,0],)
                             MishtacheiEtzOut_Billing.to_excel(writer, 'משטחי עץ לזיכוי', index=False, freeze_panes=[1,0],)                            
                             ErechMusaf_Billing.to_excel(writer, 'ערך מוסף מיון ובניה', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
+                            
 
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)
@@ -1462,7 +1134,7 @@ if choose == "Excel Report":
                     
 
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1499,8 +1171,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
+
 ################ גולף  ##################################
-    def GOLF_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def GOLF_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
                         Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='GOLF'", connection)              
@@ -1529,7 +1202,7 @@ if choose == "Excel Report":
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT  \
                                                                     , CASE WHEN TRANSPORTTYPE='PurchaseOrder' THEN OBJECTUNITS ELSE 0 END AS PalltesToBill from repProformaInDetailed \
                                                                         where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('12','13','14') ", connection)
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
+                        
 
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
@@ -1542,7 +1215,7 @@ if choose == "Excel Report":
                             HovalaFromGolf.to_excel(writer, 'הובלה מגולף', index=False, freeze_panes=[1,0],)
                             ChiyuvMishtacheiEtzHafatza_Billing.to_excel(writer,'משטחי עץ - חיוב', index=False, freeze_panes=[1,0],)
                             ZikuyMishtacheiEtz_Billing.to_excel(writer,'משטחי עץ - זיכוי', index=False, freeze_panes=[1,0],)
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
+
                            
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)
@@ -1551,7 +1224,7 @@ if choose == "Excel Report":
                     
 
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1581,7 +1254,7 @@ if choose == "Excel Report":
                         ExcelFile['ריכוז'] .column_dimensions['E'].width = 16
                         ExcelFile['ריכוז'] .column_dimensions['D'].width = 16
                         ExcelFile['ריכוז'] .column_dimensions['F'].width = 22
-                        #ExcelFile['ריכוז'] ['F12'] = MishtachimLezikuy_Billing.iloc[0][0]
+                        ExcelFile['ריכוז'] ['F12'] = MishtachimLezikuy_Billing.iloc[0][0]
                         # להפוך את כל התאים של מחיר לפורמט שקל
                         Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='B'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי
 
@@ -1592,74 +1265,10 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
-
-################ גולף עבודות ערך מוסף   ##################################
-    def GOLF_WORKCENTER_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
-
-                        #שליפת הנתונים ללשוניות הרלוונטיות
-                        Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                        Asortiment_Billing = pd.read_sql_query(f"select * from repProformaWcbOXESLTR where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('15','16','17')", connection)
-                        ZikuyTeuda_LMA_Billing = pd.read_sql_query(f"select * from repProformaWcbOXESLTR where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('19')", connection)
-                       # OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
-                        #יצירת קובץ האקסל
-                        with pd.ExcelWriter(Full_path) as writer:          
-                            Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
-                            Asortiment_Billing.to_excel(writer, 'ערך מוסף אסורטימנטים LTR', index=False, freeze_panes=[1,0],)
-                            ZikuyTeuda_LMA_Billing.to_excel(writer, 'זיכוי תעודה LMA', index=False, freeze_panes=[1,0],)
-                           # OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
-                           
-                        # הפעלת פונקציה לעיצוב האקסל
-                        ExcelDesign(Full_path)
-                        #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
-                        ExcelFile = load_workbook(Full_path)
-                    
-
-                          ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
-
-                        #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
-                        for row in Excel_Value_Update.index:
-                            ExcelFile[ExcelBillAppCellValue['TAB'][row]] [ExcelBillAppCellValue['CELL'][row]] = ExcelBillAppCellValue['Cell_Value'][row]
-                       
-                        #עדכון מילוי בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Fill = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Fill']                       
-                        for row in Excel_Value_Fill.index:
-                            ExcelFile[Excel_Value_Fill['TAB'][row]][Excel_Value_Fill['CELL'][row]].fill = Choose_Fill(Excel_Value_Fill['Cell_Value'][row])
-                       
-                        #עדכון פונט בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Font = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Font']                       
-                        for row in Excel_Value_Font.index:
-                            ExcelFile[Excel_Value_Font['TAB'][row]][Excel_Value_Font['CELL'][row]].font = Choose_Font(Excel_Value_Font['Cell_Value'][row])                              
-
-                        # ExcelFile['ריכוז'] ['B3'].fill = Header_fill
-                        # ExcelFile['ריכוז'] ['A1'].font = Header_font
-                        # ExcelFile['ריכוז'] ['A4'] = 'אחסנה'
-                        # ExcelFile['ריכוז'] ['B4'] = '=SUM(אחסנה!V:V)'
-                        
-                        #עדכון מיזוג וגודל עמודות קבוע ללשונית ריכוז 
-                        ExcelFile['ריכוז'] .merge_cells('A1:B1')
-                        ExcelFile['ריכוז'] .column_dimensions['A'].width = 22
-                        ExcelFile['ריכוז'] .column_dimensions['B'].width = 14
-                        ExcelFile['ריכוז'] .column_dimensions['G'].width = 37
-                        ExcelFile['ריכוז'] .column_dimensions['E'].width = 16
-                        ExcelFile['ריכוז'] .column_dimensions['D'].width = 16
-                        ExcelFile['ריכוז'] .column_dimensions['F'].width = 22
-                        #ExcelFile['ריכוז'] ['F12'] = MishtachimLezikuy_Billing.iloc[0][0]
-                        # להפוך את כל התאים של מחיר לפורמט שקל
-                        Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='B'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי
-
-                       
-                        for row in Charge_cell.index:                           
-                            ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'      
-
-
-                        ExcelFile.save(Full_path)
 
 
 ################ ג'ינגר  ################################## 
-    def JINGER_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def JINGER_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
                         loads_billing.drop(['UNITS'], axis=1, inplace=True)
@@ -1668,16 +1277,15 @@ if choose == "Excel Report":
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and CHARGEDESCRIPTION like '%ליקוט%' ", connection)
                         Mecholot_Billing = pd.read_sql_query(f"select * from vBillMECHOLOT where CHARGEID='{ChargeID}' and CONSIGNEE='JIN'", connection)              
-                        Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
+                        Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                        where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('12') ", connection)
-                        KlitaChazarot_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
+                                                                        where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and ISNULL(TRANSPORTTYPE,'')='RETURN' ", connection)
+                        KlitaChazarot_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                        where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and AGREEMENTLINE in ('5','6') ", connection)
+                                                                        where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and ISNULL(TRANSPORTTYPE,'')<>'RETURN' ", connection)
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='83'  ", connection)          
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
+                    
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -1687,7 +1295,6 @@ if choose == "Excel Report":
                             Likut_Billing.to_excel(writer, 'ליקוטים', index=False, freeze_panes=[1,0],)
                             KlitaChazarot_Billing.to_excel(writer, 'קליטת החזרות', index=False, freeze_panes=[1,0],)
                             HafatzaReport_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)                            
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
 
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)
@@ -1695,7 +1302,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)
                     
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1733,21 +1340,21 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
+
 ################ יקב מורד  ################################## 
-    def MORAD_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def MORAD_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         loads_billing = pd.read_sql_query(f"select * from repProformaLoads where CHARGEID='{ChargeID}'", connection)
                         Likut_Billing = pd.read_sql_query(f"select CHARGEID, AGREEMENTNAME, AGREEMENTLINE, CHARGEDESCRIPTION, AGREEMENTDESC, CONSIGNEENAME, ROW_NUMBER() OVER(ORDER BY CHARGEID) AS LineNumber \
                                     , COMPANY, COMPANYNAME, Contact, CONTACT1NAME, OBJECTID AS Document, OBJECTDATE AS Document_Date, OBJECTUNITS AS Document_Units \
                                     , PRICEPERUNIT, VALUE, SHIPPEDDATE, REFERENCEORD AS OutboundReference, ParamREFERENCEORDER AS OutParamReference \
                                     , SECAGENT, AGENTDESC, ORDERTYPE from repProformaDetailed where CHARGEID='{ChargeID}' and AGREEMENTLINE in ('6','3') ", connection)
-                        Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTLINE, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
+                        Klita_Billing = pd.read_sql_query(f"select CHARGEID,CONSIGNEE, CHARGELINE,AGREEMENTNAME, AGREEMENTNAME, COMPANYNAME, OBJECTID AS DOCUMENT, BOL,CONVERT(DATE, OBJECTDATE) AS DocumentDate \
                                                                     , OBJECTUNITS as UNITS, PRICEPERUNIT, VALUE as CHAREGE, CLOSERECEIPTDATE as DATE, VEHICLE as VENDOR, DRIVER1 as CONTACT from repProformaInDetailed \
-                                                                        where CHARGEID='{ChargeID}' and  AGREEMENTLINE in ('1','2')", connection)
+                                                                        where CHARGEID='{ChargeID}' and isnull(FIELDVALUE,'')<>'MECHOLOT' and ISNULL(TRANSPORTTYPE,'')='RETURN' ", connection)
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak='37'  ", connection)          
                         Rikuz_Billing = pd.read_sql_query(f"select CONSIGNEENAME from CONSIGNEE where CONSIGNEE='{consigneeSelected}'", connection)                  
-                        OneTimeCharge = pd.read_sql_query(f"select * from ProformaBillOneTimeCharge where CONSIGNEE='{consigneeSelected}' and year(ValueDate)='{YEARSelected}' and month(ValueDate)='{monthSelected}'", connection)                  
-
+                    
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
                             Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)
@@ -1755,7 +1362,6 @@ if choose == "Excel Report":
                             Klita_Billing.to_excel(writer, 'קליטה', index=False, freeze_panes=[1,0],)
                             Likut_Billing.to_excel(writer, 'ליקוטים והמכלות', index=False, freeze_panes=[1,0],)
                             HafatzaReport_Billing.to_excel(writer, 'הפצה', index=False, freeze_panes=[1,0],)                            
-                            OneTimeCharge.to_excel(writer, 'חיובים חד פעמיים', index=False, freeze_panes=[1,0],)
 
                         # הפעלת פונקציה לעיצוב האקסל
                         ExcelDesign(Full_path)
@@ -1763,7 +1369,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)
                     
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1800,8 +1406,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
+
 ################ קרביץ  ################################## 
-    def KRAVITZ_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def KRAVITZ_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak IN ('1900','19')  ", connection)          
                         Rikuz_Billing = pd.read_sql_query(f"select 'קרביץ' ", connection)                  
@@ -1817,7 +1424,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)
                     
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1854,8 +1461,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
+
 ################ גולף CD ################################## 
-    def GOLF_CD_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def GOLF_CD_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak IN ('2')  ", connection)          
                         Rikuz_Billing = pd.read_sql_query(f"select 'GOLF_CD' ", connection)                  
@@ -1871,7 +1479,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)
                     
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1908,8 +1516,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
+
 ################ אשד ################################## 
-    def ESHED_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def ESHED_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak IN ('3')  ", connection)          
                         Rikuz_Billing = pd.read_sql_query(f"select 'ESHED' ", connection)                  
@@ -1925,7 +1534,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)
                     
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -1962,8 +1571,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
+
 ################ KNS ################################## 
-    def KNS_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def KNS_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak IN ('69')  ", connection)          
                         Rikuz_Billing = pd.read_sql_query(f"select 'KNS' ", connection)                  
@@ -1979,7 +1589,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)
                     
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -2016,11 +1626,13 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
+
+
 ################ לוגיסטים ################################## 
-    def LOGISTEAM_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def LOGISTEAM_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         HafatzaReport_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak IN ('101','150')  ", connection)          
-                        Rikuz_Billing = pd.read_sql_query(f"select 'לוגיסטים'", connection)                  
+                        Rikuz_Billing = pd.read_sql_query(f"select 'לוגיסטים ", connection)                  
                     
                         #יצירת קובץ האקסל
                         with pd.ExcelWriter(Full_path) as writer:          
@@ -2033,7 +1645,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)
                     
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -2076,70 +1688,9 @@ if choose == "Excel Report":
 
                         ExcelFile.save(Full_path)
 
-################ טסט ################################## 
-    def TEST_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
-                        #שליפת הנתונים ללשוניות הרלוונטיות
-                        HafatzaReport_Billing = pd.read_sql_query(f"SELECT * from repProformaDetailed where CHARGEID='0000005607' and CHARGEDESCRIPTION like '%ליקוט%' ", connection)          
-                        HafatzaPivotReport_Billing = pd.read_sql_query(f"SELECT CHARGEDESCRIPTION, OBJECTUNITS AS Document_Units, PRICEPERUNIT, VALUE from repProformaDetailed where CHARGEID='0000005607' and CHARGEDESCRIPTION like '%ליקוט%' ", connection)          
-                        HafatzaPivotReport_Billing = HafatzaPivotReport_Billing.pivot_table(index='CHARGEDESCRIPTION', values=['Document_Units','PRICEPERUNIT','VALUE'], aggfunc=[sum],margins=True, margins_name='סה"כ')
-                        Rikuz_Billing = pd.read_sql_query(f"select 'TEST' ", connection)                  
-                    
-                        #יצירת קובץ האקסל
-                        with pd.ExcelWriter(Full_path) as writer:  
-                            Rikuz_Billing.to_excel(writer,'ריכוז',index=False, freeze_panes=[1,0],header=False)                              
-                            HafatzaReport_Billing.to_excel(writer, 'טסט', index=False, freeze_panes=[1,0],)
-                            HafatzaPivotReport_Billing.to_excel(writer, 'פיווט', freeze_panes=[1,0],startrow=1)  
-                                                        
-
-                        # הפעלת פונקציה לעיצוב האקסל
-                        ExcelDesign(Full_path)
-                        #שמירת הקובץ במשתנה לשימוש בהמשך הקוד
-                        ExcelFile = load_workbook(Full_path)
-                    
-                          ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
-
-                        #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
-                        for row in Excel_Value_Update.index:
-                            ExcelFile[ExcelBillAppCellValue['TAB'][row]] [ExcelBillAppCellValue['CELL'][row]] = ExcelBillAppCellValue['Cell_Value'][row]
-                       
-                        #עדכון מילוי בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Fill = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Fill']                       
-                        for row in Excel_Value_Fill.index:
-                            ExcelFile[Excel_Value_Fill['TAB'][row]][Excel_Value_Fill['CELL'][row]].fill = Choose_Fill(Excel_Value_Fill['Cell_Value'][row])
-                       
-                        #עדכון פונט בתאים לפי שליפה מערכים בבסיס הנתונים
-                        Excel_Value_Font = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Font']                       
-                        for row in Excel_Value_Font.index:
-                            ExcelFile[Excel_Value_Font['TAB'][row]][Excel_Value_Font['CELL'][row]].font = Choose_Font(Excel_Value_Font['Cell_Value'][row])                              
-
-                        # ExcelFile['ריכוז'] ['B3'].fill = Header_fill
-                        # ExcelFile['ריכוז'] ['A1'].font = Header_font
-                        # ExcelFile['ריכוז'] ['A4'] = 'אחסנה'
-                        # ExcelFile['ריכוז'] ['B4'] = '=SUM(אחסנה!V:V)'
-                        
-                        #עדכון מיזוג וגודל עמודות קבוע ללשונית ריכוז 
-                        ExcelFile['ריכוז'] .merge_cells('A1:B1')
-                        ExcelFile['ריכוז'] .column_dimensions['A'].width = 22
-                        ExcelFile['ריכוז'] .column_dimensions['B'].width = 14
-
-                        # להפוך את כל התאים של מחיר לפורמט שקל
-                        Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='B'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי                     
-                        for row in Charge_cell.index:                           
-                            ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'   
-
-                         # להפוך את כל התאים של מחיר לפורמט שקל
-                        Charge_cell = ExcelBillAppCellValue[ExcelBillAppCellValue['CELL'].astype(str).str[0] =='C'] #שליפה של השורות שהערך בעמודה תא מתחיל האות בי                     
-                        for row in Charge_cell.index:                           
-                            ExcelFile['ריכוז'] [Charge_cell['CELL'][row]].number_format = u'#,##0 ₪'      
-   
-
-
-                        ExcelFile.save(Full_path)
 
 ################ אורשר  ################################## 
-    def ORSHAR_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID, BillType):
+    def ORSHAR_EXCEL(consigneeSelected, Full_path, YEARSelected, monthSelected, ChargeID):
                         #שליפת הנתונים ללשוניות הרלוונטיות
                         HafatzaReport_NirGalim_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak IN ('41')  ", connection)
                         HafatzaReport_Tornado_Billing = pd.read_sql_query(f"select * from vCheshbonSapakimMegicBill where year(Date_Aspaka)='{YEARSelected}' and month(Date_Aspaka)='{monthSelected}' and Mispar_Sapak IN ('48')  ", connection)                    
@@ -2161,7 +1712,7 @@ if choose == "Excel Report":
                         ExcelFile = load_workbook(Full_path)
                     
                           ## בניית תוכן של לשונית ריכוז 
-                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}' and Bill_Type='{BillType}' ", connection)               
+                        ExcelBillAppCellValue = pd.read_sql_query(f"select * from ExcelBillAppCellValue where consignee='{consigneeSelected}'", connection)               
 
                         #השמת ערכים בתאים לפי שליפה מערכים בבסיס הנתונים
                         Excel_Value_Update = ExcelBillAppCellValue[ExcelBillAppCellValue['Change_Type'] == 'Value']
@@ -2208,12 +1759,9 @@ if choose == "Excel Report":
                 monthSelected = st.selectbox('month',['01','02','03','04','05','06','07','08','09','10','11','12'])
             with c3:
                 YEARSelected = st.selectbox('year', options=YearOptions)
-            BillType =pd.read_sql_query(f"select '' as BILL_TYPE UNION  select 'WORK_CENTER' as BILL_TYPE ", connection)
-            BillType = st.selectbox('BillType', options=BillType)
             path = st.text_input('Folder path')               
             File_name = st.text_input('File name')
-            BillType_For_Path = '-' + BillType
-            Full_path = path + '\\' + consigneeSelected + BillType_For_Path + '-' +  YEARSelected.strip() + '-' + monthSelected  + File_name + '.xlsx'
+            Full_path = path + '\\' + consigneeSelected + '-' +  YEARSelected.strip() + '-' + monthSelected  + File_name + '.xlsx'
             
 
             Submit = st.form_submit_button('Create billing report')      
@@ -2230,63 +1778,50 @@ if choose == "Excel Report":
                     if NumChargeInMonth>1:  
                         st.error('יש יותר מחיוב אחד חדש עבור המאחסן לחודש שנבחר')
                         st.stop()
-                    ChargeID = pd.read_sql_query(f"select isnull(max(CHARGEID),'') as CHARGEID from BILLINGCHARGESHEADER where consignee='{consigneeSelected}' and year(BILLTODATE)='{YEARSelected}' and month(BILLTODATE)='{monthSelected}' and STATUS<>'CANCELED' ", connection).iloc[0]['CHARGEID'].replace(" ", "")
+                    ChargeID = pd.read_sql_query(f"select isnull(max(CHARGEID),'') as CHARGEID from BILLINGCHARGESHEADER where consignee='{consigneeSelected}' and year(BILLTODATE)='{YEARSelected}' and month(BILLTODATE)='{monthSelected}'", connection).iloc[0]['CHARGEID'].replace(" ", "")
                 
                     if consigneeSelected=='ELECTRA':
-                        ELECTRA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        ELECTRA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='BUR':
-                        BUR_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        BUR_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='BIAPAL':
-                        BFL_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        BFL_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='AFRODITA':
-                        AFRODITA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        AFRODITA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='BONITA':
-                        BONITA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        BONITA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='KITAN':
-                        KITAN_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        KITAN_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='LAVAN':
-                        LAVAN_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        LAVAN_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='JIN':
-                        JINGER_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        JINGER_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='MORAD':
-                        MORAD_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        MORAD_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='DELTA':
-                        DELTA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
-                    elif consigneeSelected=='GOLF' and  BillType=='' :
-                        GOLF_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
-                    elif consigneeSelected=='GOLF' and  BillType=='WORK_CENTER' :
-                        GOLF_WORKCENTER_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        DELTA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
+                    elif consigneeSelected=='GOLF':
+                        GOLF_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='TENELECTRIK':
-                        TENELECTRIK_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        TENELECTRIK_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='MANIA':
-                        MANIA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        MANIA_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='TADIRANG':
-                        TADIRAN_GROUP_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        TADIRAN_GROUP_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='FLEX':
-                        FLEX_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        FLEX_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='KRAVITZ':
-                        KRAVITZ_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        KRAVITZ_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='ORSHAR':
-                        ORSHAR_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        ORSHAR_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='GOLF_CD':
-                        GOLF_CD_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        GOLF_CD_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='ESHED':
-                        ESHED_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        ESHED_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='KNS':
-                        KNS_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
+                        KNS_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     elif consigneeSelected=='LOGISTEAM':
-                        LOGISTEAM_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
-                    elif consigneeSelected=='TEST':
-                        TEST_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
-                    elif consigneeSelected=='MCHASHMAL':
-                        MCHASHMAL_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
-                    elif consigneeSelected=='SHEROTHOGEN':
-                        SHEROTHOGEN_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
-                    elif consigneeSelected=='GOLFSIT':
-                        GOLFSIT_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
-                    elif consigneeSelected=='SILKN':
-                        SILKN_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID,BillType)
-        
+                        LOGISTEAM_EXCEL(consigneeSelected,Full_path,YEARSelected, monthSelected, ChargeID)
                     else:
                         st.error(f'File not created')
                         st.stop()
@@ -2306,97 +1841,6 @@ elif choose == "Report Design":
 elif choose == "Wms changes":
     PageName = '<p style="font-family:sans-serif; color:black; font-size: 20px; background: #F0F2F6; text-align: center; ">Wms changes</p>'
     st.markdown(PageName, unsafe_allow_html=True)
-    consignee = pd.read_sql_query("select consignee from consignee", connection) 
-    STATUS = pd.read_sql_query("select distinct status from RECEIPTHEADER", connection) 
-    users = pd.read_sql_query("select '' as USERID union select USERID from SCEXPERTSYS..USERPROFILE", connection)
-    Password = pd.read_sql_query("select param_value as PASSWORD from SCEXPERTSYS..sys_param where param_name='yinonbillingpassword'", connection)
-    Password=Password.iloc[0]['PASSWORD']
-    Password= Password.replace(" ", "")
-    inputType = st.selectbox('Action type', options=['InsertScore','UpdateReceiptStatus','ScoreHistory'])
-
-    #בחירת טופס הכנסת ניקוד
-    if inputType=='InsertScore':
-        with st.form('MyFirstForm'):
-            inputName = st.selectbox('USER NAME', options=users)
-            inputPassword = st.text_input('PASSWORD')
-            inputDailyScore = st.number_input('Score Today' , step=1)
-            Confirm = st.form_submit_button('Confirm') 
-            if Confirm:
-                if inputName=='':
-                    st.error('Need insert valid username')            
-                elif inputPassword==False:
-                    st.error('Need insert password') 
-                elif inputDailyScore==0:
-                    st.error('Need insert valid score') 
-                elif inputPassword!=Password:
-                    st.error('Wrong password') 
-                else:
-                    st.success(f'Activity score update to {inputDailyScore} successfully')
-                    insert_records = '''insert into ADMIN_ACTIONS1(action_type, score, USERNAME) values('updateScore',?,?)  '''
-                    connection.execute(insert_records, inputDailyScore, inputName)
-                    connection.commit()
-                    SCORE = pd.read_sql_query(f"select ActivityType, NumActivityForToday, ActivityDoneToday, ActivityExecutePrecent, NikudLeft from ReportActivityWarehouse order by NikudLeft desc ", connection)
-                    SCORE['ActivityExecutePrecent'] = SCORE['ActivityExecutePrecent'].fillna(0).astype(int)
-                    SCORE['NumActivityForToday'] = SCORE['NumActivityForToday'].fillna(0).astype(int)
-                    SCORE['ActivityDoneToday'] = SCORE['ActivityDoneToday'].fillna(0).astype(int)
-                    # SCORE = SCORE.set_index(SCORE['ActivityType'])
-                    SCORE
-                    
-
-
-    # בחירת עדכון סטטוס קליטה לחדש
-    if inputType=='UpdateReceiptStatus':
-        with st.form('UpdateReceiptStatus'):
-        # inputConsignee = st.selectbox('Consignee', options=consignee)
-        
-            inputReceipt = st.text_input('Receipt')
-            inputStatus = st.selectbox('STATUS', options=STATUS)
-            inputPassword = st.text_input('PASSWORD')
-            inputName = st.selectbox('USER NAME', options=users)
-            Confirm = st.form_submit_button('Confirm') 
-            if Confirm:
-                if inputReceipt == "" or inputPassword == "" or inputName == "":
-                    if inputReceipt == "":
-                        st.markdown("Please enter receipt")
-                    if inputPassword == "":
-                        st.markdown("Please enter valid Password")
-                    if inputName == "":
-                        st.markdown("Please enter username")
-                if inputPassword and inputStatus and inputReceipt and inputPassword==Password:
-                    st.success(f'Receipt Status update successpully')
-                    update_records = f'''update RECEIPTHEADER set status=? where receipt=?  '''
-                    connection.execute(update_records, inputStatus, inputReceipt)
-                    #connection.commit()
-                    RECEIPTHEADER = pd.read_sql_query(f"select SEAL2 as CONSIGNEE, STATUS as NEW_STATUS from RECEIPTHEADER where receipt='{inputReceipt}'", connection)
-                    RECEIPTHEADER
-                else:
-                    st.error('Some field are missing / Wrong password') 
-
-
-    # צפייה בהיסטורית שינוי ניקוד
-    if inputType=='ScoreHistory':
-    
-        
-
-        # Create a form with multiple fields
-        form_field1 = st.empty()
-        form_field1 = st.text_input("Enter your name:")
-        form_field2 = st.text_input("Enter your email:")
-
-        # Add a submit button
-        if st.button("Submit"):
-            # Check if any of the form fields are empty
-            if form_field1 == "" or form_field2 == "":
-                # If a field is empty, display an error message next to the appropriate field
-                if form_field1 == "":
-                    st.write("Please enter your name.", key='name_error')
-                    st.empty()
-                if form_field2 == "":
-                    st.write("Please enter your email.", key='email_error')
-                    st.empty()
-            else:
-                # If all fields are filled in, display a success message
-                st.success("Thank you for submitting the form!")
 
 
 elif choose == "Compare Report":
